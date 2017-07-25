@@ -1,9 +1,5 @@
 
-
-var storage = {results: [{
-  username: 'Jono',
-  message: 'Do my bidding!'
-}]};
+var storage = {results: []};
 
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
@@ -30,29 +26,23 @@ var requestHandler = function(request, response) {
   
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
   // const { headers, method, url } = request;
-  let body = [];
-  if (request.url === '/classes/messages') {
+  let body = '';
+  if (request.url === '/classes/messages' || request.url === '/classes/room') {
     if (request.method === 'GET') {
-      request.on('data', (data) => {
-        
-        console.log('I NEVER GET HERE', data);
-        
-      }).on('end', () => {
-        var statusCode = 200;
-        headers = defaultCorsHeaders;
-        headers['Content-Type'] = 'text/plain';
-        response.writeHead(statusCode, headers);
-        response.end(JSON.stringify(storage));
-        console.log('TMONEY STOREAGE', storage);
-      });
+      var statusCode = 200;
+      headers = defaultCorsHeaders;
+      response.writeHead(statusCode, headers);
+      response.end(JSON.stringify(storage));
     } else if (request.method === 'POST') {
-      request.on('data', (data) => {
-        body.push(data);
+      request.on('data', (chunk) => {
+        body += chunk;
       }).on('end', () => {
-        response.statusCode = 201;
-        // body = Buffer.concat(body).toString();
-        // console.log(body);
-        response.end();
+        body = JSON.parse(body);
+        storage.results.push(body);
+        statusCode = 201;
+        headers = defaultCorsHeaders;
+        response.writeHead(statusCode, headers);
+        response.end(JSON.stringify(storage));     
       });
     } else if (request.method === 'PUT') {
 
