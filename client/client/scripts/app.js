@@ -3,7 +3,7 @@ var app = {
 
   //TODO: The current 'handleUsernameClick' function just toggles the class 'friend'
   //to all messages sent by the user
-  server: 'http://127.0.0.1:3000/chatterbox/classes/messages',
+  server: 'http://127.0.0.1:3000/',
   username: 'anonymous',
   roomname: 'lobby',
   lastMessageId: 0,
@@ -42,14 +42,16 @@ var app = {
     $.ajax({
       url: app.server,
       type: 'POST',
-      data: message,
+      data: JSON.stringify(message),
       success: function (data) {
+
         // Clear messages input
         app.$message.val('');
 
         // Trigger a fetch to update the messages, pass true to animate
         app.fetch();
       },
+
       error: function (error) {
         console.error('chatterbox: Failed to send message', error);
       }
@@ -60,16 +62,16 @@ var app = {
     $.ajax({
       url: app.server,
       type: 'GET',
-      data: { order: '-createdAt' },
+      // data: { order: '-createdAt' },
+      crossDomain:true,
       contentType: 'application/json',
       success: function(data) {
-        console.log(data);
         // Don't bother if we have nothing to work with
+        data = JSON.parse(data);
         if (!data.results || !data.results.length) { return; }
 
         // Store messages for caching later
         app.messages = data.results;
-
         // Get the last message
         var mostRecentMessage = data.results[data.results.length - 1];
 
@@ -80,7 +82,7 @@ var app = {
 
           // Update the UI with the fetched messages
           app.renderMessages(data.results, animate);
-
+          console.log(data.results)
           // Store the ID of the most recent message
           app.lastMessageId = mostRecentMessage.objectId;
         }
@@ -96,6 +98,8 @@ var app = {
   },
 
   renderMessages: function(messages, animate) {
+    console.log('App Messages', messages)
+
     // Clear existing messages`
     app.clearMessages();
     app.stopSpinner();
@@ -227,7 +231,7 @@ var app = {
 
   startSpinner: function() {
     $('.spinner img').show();
-    $('form input[type=submit]').attr('disabled', 'true');
+    // $('form input[type=submit]').attr('disabled', 'true');
   },
 
   stopSpinner: function() {
